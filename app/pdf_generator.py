@@ -6,10 +6,13 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import io
+import os
 
-# 나눔 폰트 등록
-pdfmetrics.registerFont(TTFont('NanumGothic', '/usr/share/fonts/truetype/nanum/NanumGothic.ttf'))
-pdfmetrics.registerFont(TTFont('NanumGothicBold', '/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf'))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FONT_PATH = os.path.join(BASE_DIR, 'fonts')
+
+pdfmetrics.registerFont(TTFont('NanumGothic', os.path.join(FONT_PATH, 'NanumGothic.ttf')))
+pdfmetrics.registerFont(TTFont('NanumGothicBold', os.path.join(FONT_PATH, 'NanumGothicBold.ttf')))
 
 def generate_evidence_pdf(
     image_bytes: bytes,
