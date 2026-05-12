@@ -6,6 +6,22 @@ interface CameraCaptureProps {
   onCapture: (file: File) => void
 }
 
+const MAX_CAPTURE_DIMENSION = 1280
+const JPEG_QUALITY = 0.75
+
+function getScaledDimensions(width: number, height: number) {
+  const longestSide = Math.max(width, height)
+  if (longestSide <= MAX_CAPTURE_DIMENSION) {
+    return { width, height }
+  }
+
+  const scale = MAX_CAPTURE_DIMENSION / longestSide
+  return {
+    width: Math.round(width * scale),
+    height: Math.round(height * scale),
+  }
+}
+
 export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -13,17 +29,18 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const [captured, setCaptured] = useState(false)
 
   const startCamera = useCallback(async () => {
-    console.log('버튼 클릭됨')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
       })
-      console.log('스트림 성공', stream)
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         await videoRef.current.play()
         setStreaming(true)
-        console.log('streaming true 설정됨')
       }
     } catch (err) {
       console.log('카메라 오류', err)
@@ -35,11 +52,14 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
     if (!videoRef.current || !canvasRef.current) return
     const canvas = canvasRef.current
     const video = videoRef.current
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+    const { width, height } = getScaledDimensions(video.videoWidth, video.videoHeight)
+    canvas.width = width
+    canvas.height = height
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    ctx.drawImage(video, 0, 0)
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(video, 0, 0, width, height)
     canvas.toBlob((blob) => {
       if (!blob) return
       const file = new File([blob], 'pothole.jpg', { type: 'image/jpeg' })
@@ -48,7 +68,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
       const stream = video.srcObject as MediaStream
       stream?.getTracks().forEach(track => track.stop())
       setStreaming(false)
-    }, 'image/jpeg', 0.9)
+    }, 'image/jpeg', JPEG_QUALITY)
   }, [onCapture])
 
   return (

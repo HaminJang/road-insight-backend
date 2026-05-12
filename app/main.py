@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from datetime import datetime, timezone
 from typing import Optional
+from starlette.concurrency import run_in_threadpool
 from app.schemas import AnalysisResponse, DamageDetection
 from app.analyzer import analyze_image
 from app.hasher import generate_hash
@@ -34,7 +35,7 @@ async def analyze(
     image_bytes = await file.read()
     hash_value = generate_hash(image_bytes)
     timestamp = datetime.now(timezone.utc).isoformat()
-    result = analyze_image(image_bytes)
+    result = await run_in_threadpool(analyze_image, image_bytes)
 
     return AnalysisResponse(
         success=True,
@@ -61,9 +62,10 @@ async def generate_pdf(
     image_bytes = await file.read()
     hash_value = generate_hash(image_bytes)
     timestamp = datetime.now(timezone.utc).isoformat()
-    result = analyze_image(image_bytes)
+    result = await run_in_threadpool(analyze_image, image_bytes)
 
-    pdf_bytes = generate_evidence_pdf(
+    pdf_bytes = await run_in_threadpool(
+        generate_evidence_pdf,
         image_bytes=image_bytes,
         hash_value=hash_value,
         timestamp=timestamp,
@@ -71,7 +73,7 @@ async def generate_pdf(
         longitude=longitude,
         confidence=result["confidence"],
         damage_score=result["damage_score"],
-        detected=result["detected"]
+        detected=result["detected"],
     )
 
     return Response(
