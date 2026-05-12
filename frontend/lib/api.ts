@@ -7,8 +7,8 @@ export async function analyzeRoad(
 ) {
   const formData = new FormData()
   formData.append('file', file)
-  if (latitude) formData.append('latitude', latitude.toString())
-  if (longitude) formData.append('longitude', longitude.toString())
+  if (latitude !== null) formData.append('latitude', latitude.toString())
+  if (longitude !== null) formData.append('longitude', longitude.toString())
 
   const response = await fetch(`${API_URL}/analyze`, {
     method: 'POST',
@@ -29,8 +29,8 @@ export async function downloadPDF(
 ) {
   const formData = new FormData()
   formData.append('file', file)
-  if (latitude) formData.append('latitude', latitude.toString())
-  if (longitude) formData.append('longitude', longitude.toString())
+  if (latitude !== null) formData.append('latitude', latitude.toString())
+  if (longitude !== null) formData.append('longitude', longitude.toString())
 
   const response = await fetch(`${API_URL}/generate-pdf`, {
     method: 'POST',
