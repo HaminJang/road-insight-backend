@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import CameraCapture from '@/components/CameraCapture'
 import { useGeolocation } from '@/hooks/useGeolocation'
-import { analyzeRoad, downloadPDF } from '@/lib/api'
+import { analyzeRoad, downloadPDF, type AnalysisResponse } from '@/lib/api'
 
 export default function Home() {
   const location = useGeolocation()
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<AnalysisResponse | null>(null)
   const [capturedFile, setCapturedFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
@@ -20,7 +20,7 @@ export default function Home() {
     try {
       const data = await analyzeRoad(file, location.latitude, location.longitude)
       setResult(data)
-    } catch (err) {
+    } catch {
       setError('분석 중 오류가 발생했습니다')
     } finally {
       setLoading(false)
@@ -32,7 +32,7 @@ export default function Home() {
     setPdfLoading(true)
     try {
       await downloadPDF(capturedFile, location.latitude, location.longitude)
-    } catch (err) {
+    } catch {
       setError('PDF 생성 중 오류가 발생했습니다')
     } finally {
       setPdfLoading(false)

@@ -1,24 +1,24 @@
 import { useState, useEffect } from 'react'
 
-interface Location {
+interface GeolocationState {
   latitude: number | null
   longitude: number | null
   error: string | null
 }
 
 export const useGeolocation = () => {
-  const [location, setLocation] = useState<Location>({
-    latitude: null,
-    longitude: null,
-    error: null
+  const [location, setLocation] = useState<GeolocationState>(() => {
+    const unsupported = typeof navigator !== 'undefined' && !navigator.geolocation
+
+    return {
+      latitude: null,
+      longitude: null,
+      error: unsupported ? 'GPS를 지원하지 않는 기기입니다' : null
+    }
   })
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setLocation(prev => ({
-        ...prev,
-        error: 'GPS를 지원하지 않는 기기입니다'
-      }))
       return
     }
 
@@ -30,7 +30,7 @@ export const useGeolocation = () => {
           error: null
         })
       },
-      (error) => {
+      () => {
         setLocation(prev => ({
           ...prev,
           error: 'GPS 정보를 가져올 수 없습니다'

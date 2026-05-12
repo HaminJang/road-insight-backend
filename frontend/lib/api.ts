@@ -1,10 +1,26 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
 
+export interface AnalysisResponse {
+  success: boolean
+  hash: string
+  timestamp: string
+  latitude: number | null
+  longitude: number | null
+  detection: {
+    detected: boolean
+    confidence: number
+    area_ratio: number
+    damage_score: number
+    bbox: number[] | null
+  }
+  message: string
+}
+
 export async function analyzeRoad(
   file: File,
   latitude: number | null,
   longitude: number | null
-) {
+): Promise<AnalysisResponse> {
   const formData = new FormData()
   formData.append('file', file)
   if (latitude !== null) formData.append('latitude', latitude.toString())
